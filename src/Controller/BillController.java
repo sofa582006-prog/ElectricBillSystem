@@ -9,24 +9,50 @@ public class BillController {
     private final Tariff tariff = new Tariff();
 
     // ---------- CREATE BILL ----------
-    public Bill createBill(Customer c, double currentReading, String year, String month) {
 
-        double consumption = c.calculateConsumption(currentReading);
-        double amount = tariff.calculateAmount(consumption);
+public Bill createBill(Customer c, double currentReading, String year, String month) {
+    double consumption = c.calculateConsumption(currentReading);
+    double amount = tariff.calculateAmount(consumption);
 
-        String billId = "B" + (int)(Math.random() * 9000 + 1000);
+    // قراءة كل الفواتير من الملف
+    List<Bill> bills = FileManager.readBills();
 
-        return new Bill(
-                billId,
-                c.getMeterCode(),
-                year,
-                month,
-                currentReading,
-                consumption,
-                amount,
-                false
-        );
+    int maxId = 1000; // بداية العد لو مفيش فواتير
+    boolean isPaid = false; // الحالة الافتراضية
+
+    for (Bill b : bills) {
+        // شيل الـ B عشان نجيب أعلى رقم ID
+        String idStr = b.getBillId().replace("B", "");
+        try {
+            int id = Integer.parseInt(idStr);
+            if (id > maxId) {
+                maxId = id;
+            }
+        } catch (NumberFormatException e) {
+            // تجاهل أي ID مش صالح
+        }
+
+        // لو فيه فاتورة بنفس الكustomer وmonth & year نفسهم
+        if (b.getMeterCode().equals(c.getMeterCode())
+            && b.getMonth().equals(month)
+            && b.getYear().equals(year)) {
+            isPaid = b.isPaid(); // خد الحالة من الملف
+        }
     }
+
+    String billId = "B" + (maxId + 1); // اعمل ID جديد بالترتيب
+
+    return new Bill(
+            billId,
+            c.getMeterCode(),
+            year,
+            month,
+            currentReading,
+            consumption,
+            amount,
+            isPaid
+    );
+}
 
     // ---------- SAVE BILL ----------
     public void saveBill(Bill bill) {
