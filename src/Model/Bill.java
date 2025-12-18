@@ -57,6 +57,7 @@ public void updateReading(double newReading) {
 }
 public String getBillId() { return billId; }
 public String getMeterCode() { return meterCode; }
+public String getYear() {return year;}
 public String getMonth() { return month; }
 public double getReading() { return reading; }
 public double getConsumption() { return consumption; }
